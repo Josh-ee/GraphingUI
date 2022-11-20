@@ -14,13 +14,11 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import (QMessageBox, QMainWindow, QApplication, QLabel, QPlainTextEdit, QPushButton, QWidget, QLineEdit, 
                              QComboBox, QDoubleSpinBox, QMenu, QMenuBar, QStatusBar, QTabWidget, QSpinBox, QAction, QDialog, QCompleter)
  
-#from PyQt5.QtWidgets import QComboBox, QDoubleSpinBox, QMenu, QMenuBar, QStatusBar, QTabWidget, QSpinBox, QAction, QDialog, QCompleter 
 from PyQt5.QtGui import QCursor
 from PyQt5 import uic
 import sys
 
 import matplotlib
-
 import matplotlib.colors as clrs
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
@@ -56,6 +54,7 @@ class MatplotlibCanvas(FigureCanvasQTAgg):
 
 
 class UI(QMainWindow):
+    
     def __init__(self):
         super(UI, self).__init__()
         
@@ -68,21 +67,10 @@ class UI(QMainWindow):
         #Below are the button connections
         self.browseButton.clicked.connect(self.browseFiles)
         self.plotButton.clicked.connect(self.plotFunction)
+        self.clearButton.clicked.connect(self.clearPlot)
         
+        self.historyTextEdit.setReadOnly(True)
         #Below sets up the graph
-        '''
-        self.canvas = MatplotlibCanvas(self)
-        
-        self.toolbar = Navi(self.canvas, self.centralwidget)
-        self.verticalLayout.addWidget(self.toolbar)
-        self.verticalLayout.addWidget(self.canvas)
-        self.toolbar.setStyleSheet("background-color: rgb(255,255,255);")
-        
-       # fig.canvas.mpl_connect("plot_event", self.press)
-        
-        self.canvas.axes.cla()
-        self.canvas.draw()
-        '''
         self.canvas = MatplotlibCanvas(self)
         self.toolbar = Navi(self.canvas, self.centralwidget)
         self.toolbar.setStyleSheet("background-color: rgb(255,255,255);")
@@ -94,6 +82,10 @@ class UI(QMainWindow):
 
     def browseFiles(self):
         print("yes")
+        fname = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Default Save Location", "C:/")
+        if fname:
+            self.save_location = fname + '/'
+            plt.rcParams["savefig.directory"] = self.save_location
         
     def press(self, event):
         if event.button == 3:
@@ -102,11 +94,11 @@ class UI(QMainWindow):
         
         
     def plotFunction(self):
-       # x = np.linspace(-5,5,100)
         x = np.linspace(-5,5,100)
         y = x**3
         fucntion = self.functionEdit.text()
         print(fucntion)
+        self.historyTextEdit.append(fucntion)
         y = eval(fucntion)
         ax = self.canvas.axes
        # ax.spines['left'].set_position('center')
@@ -118,11 +110,28 @@ class UI(QMainWindow):
         ax.grid(True)
         ax.minorticks_on()
         ax.axvline(x = 0, color = 'k')
-        ax.axhline(y = 0, color = 'k')#, linestyle = '-')
-#        ax.plot(b,c,'k')
+        ax.axhline(y = 0, color = 'k')
         ax.plot(x,y,'g')
         self.canvas.draw()
-      #  print("no")
+        
+      
+    def clearPlot(self):
+        print("clear")
+        
+        sip.delete(self.toolbar)
+        sip.delete(self.canvas)
+        ax = self.canvas.axes
+        self.canvas = MatplotlibCanvas(self)
+        self.toolbar = Navi(self.canvas, self.centralwidget)
+        self.toolbar.setStyleSheet("background-color: rgb(255,255,255);")
+        self.verticalLayout.addWidget(self.toolbar)
+        self.verticalLayout.addWidget(self.canvas)
+        self.historyTextEdit.append("cleared")
+       # ax.cla()  
+        
+
+      
+      
 
 
 
