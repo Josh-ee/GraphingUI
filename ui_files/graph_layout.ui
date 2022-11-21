@@ -548,11 +548,45 @@ border: none;</string>
            <string>History</string>
           </attribute>
           <layout class="QGridLayout" name="gridLayout_4">
-           <item row="0" column="0">
+           <item row="1" column="0">
             <widget class="QTextEdit" name="historyTextEdit">
              <property name="styleSheet">
               <string notr="true">background-color: rgb(255, 255, 255);
 border: none;</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QPushButton" name="clearHistoryButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>50</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton{
+	background-color: rgb(70, 140, 0);
+	color: rgb(255, 255, 255);
+	font: 12 15pt &quot;Segoe UI Semibold&quot;;
+}
+QPushButton:hover{
+	background-color: rgb(85, 150, 100);
+}
+
+QPushButton:pressed{
+	background-color: rgb(86, 91, 89);
+}
+</string>
+             </property>
+             <property name="text">
+              <string>Clear History</string>
              </property>
             </widget>
            </item>
@@ -580,6 +614,15 @@ border: none;</string>
  <tabstops>
   <tabstop>browseButton</tabstop>
   <tabstop>tabWidget</tabstop>
+  <tabstop>functionEdit</tabstop>
+  <tabstop>x_startSpinBox</tabstop>
+  <tabstop>x_endSpinBox</tabstop>
+  <tabstop>y_startSpinBox</tabstop>
+  <tabstop>y_endSpinBox</tabstop>
+  <tabstop>plotButton</tabstop>
+  <tabstop>clearButton</tabstop>
+  <tabstop>clearHistoryButton</tabstop>
+  <tabstop>historyTextEdit</tabstop>
  </tabstops>
  <resources/>
  <connections/>

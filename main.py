@@ -7,10 +7,8 @@ Created on Sun Nov 20 13:40:36 2022
 simple graphing calculator
 
 To do:
-    Pop up the fatal error hook
     movable legend
     add icon
-    add clear history button
     mouse click on graph
 """
 
@@ -40,7 +38,13 @@ import numpy as np
 
 def fatalError(type, value, traceback, oldhook=sys.excepthook):
     oldhook(type, value, traceback)
-    print(value)
+    #pop up the error to the user
+    msg = QMessageBox()
+    msg.setIcon(QMessageBox.Critical)
+    msg.setWindowTitle("Error")
+    msg.setText("Error")
+    msg.setInformativeText(f"Info: {value}")
+    msg.exec_()
     return
 
 class MatplotlibCanvas(FigureCanvasQTAgg):
@@ -53,11 +57,8 @@ class MatplotlibCanvas(FigureCanvasQTAgg):
         
         self.axes = fig.add_subplot(111)
         
-        
         super(MatplotlibCanvas, self).__init__(fig)
         
-        
-
 
 class UI(QMainWindow):
     
@@ -74,6 +75,7 @@ class UI(QMainWindow):
         self.browseButton.clicked.connect(self.browseFiles)
         self.plotButton.clicked.connect(self.plotFunction)
         self.clearButton.clicked.connect(self.clearPlot)
+        self.clearHistoryButton.clicked.connect(self.clearHistory)
         
         #configure defualts and rules
         self.x_startSpinBox.setMinimum(-9999999999999)
@@ -116,14 +118,8 @@ class UI(QMainWindow):
     
         
     def plotFunction(self):
-        #connect and format graph
+        #connect graph
         ax = self.canvas.axes
-        ax.set_xlabel("x")
-        ax.set_ylabel("y")
-        ax.grid(True)
-        ax.minorticks_on()
-        ax.axvline(x = 0, color = 'k') #puts black lines on Axies
-        ax.axhline(y = 0, color = 'k')
         
         #read values from spin boxes
         x_start = self.x_startSpinBox.value()
@@ -133,43 +129,38 @@ class UI(QMainWindow):
         x = np.linspace(x_start,x_end,100)
         
         #reads string in y = x line
-        fucntion = self.functionEdit.text()
+        function = self.functionEdit.text()
+        if "^" in function: #this converts ^ to exponent
+            function = function.replace('^', '**')
         
-        #print(self.on_plot)
-        
-        if 'x' in fucntion:
-            y = eval(fucntion) #turns string into funtion 
-            
+        if 'x' in function:
+            y = eval(function) #turns string into funtion 
         else:
-            y = [eval(fucntion)]*100
+            y = [eval(function)]*100
         
-        if fucntion in self.on_plot: #prevents plotting same line
+        if function in self.on_plot: #prevents plotting same line
             ax.cla()
             for item in self.on_plot:
                 if 'x' in item:
                     y = eval(item) #turns string into funtion 
                 else:
                     y = [eval(item)]*100
-                ax.plot(x,y)
-            ax.set_xlabel("x")
-            ax.set_ylabel("y")
-            ax.grid(True)
-            ax.minorticks_on()
-            ax.axvline(x = 0, color = 'k') #puts black lines on Axies
-            ax.axhline(y = 0, color = 'k')
-            ax.axis(xmin=x_start,xmax=x_end)
-            ax.axis(ymin=y_start,ymax=y_end)
-            self.canvas.draw()
-            return
+                
+                ax.plot(x,y) 
         else:
-            self.on_plot.append(fucntion)
-            self.historyTextEdit.append(fucntion) 
+            self.on_plot.append(function)
+            self.historyTextEdit.append(function) 
+            ax.plot(x,y)
         
-        ax.plot(x,y)#'g')
+        #format and draw the graph
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+        ax.grid(True)
+        ax.minorticks_on()
+        ax.axvline(x = 0, color = 'k') #puts black lines on Axies
+        ax.axhline(y = 0, color = 'k')
         ax.axis(xmin=x_start,xmax=x_end)
         ax.axis(ymin=y_start,ymax=y_end)
-        
-       # ax.axis.ylim(self.y_startSpinBox.value(), self.y_endSpinBox.value())
         self.canvas.draw()
         
       
@@ -184,6 +175,10 @@ class UI(QMainWindow):
         self.verticalLayout.addWidget(self.toolbar)
         self.verticalLayout.addWidget(self.canvas)
         self.historyTextEdit.append("cleared")
+        
+    def clearHistory(self):
+        self.historyTextEdit.clear()
+        
         
 
       
