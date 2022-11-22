@@ -68,7 +68,7 @@ class UI(QMainWindow):
     def __init__(self):
         super(UI, self).__init__()
         
-        #self.setWindowIcon(QtGui.QIcon('fileName.png'))
+        self.setWindowIcon(QtGui.QIcon('icon.png'))
         
         #point to UI file to use
         uic.loadUi("ui_files/graph_layout.ui", self)
