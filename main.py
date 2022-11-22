@@ -9,11 +9,14 @@ simple graphing calculator
 To do:
     movable legend
     add icon
-    mouse click on graph
+    add auto resize
+    
 """
 
 
 import math
+from math import sin, cos, tan
+#from math import sin
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import (QMessageBox, QMainWindow, QApplication, QLabel, QPlainTextEdit, QPushButton, QWidget, QLineEdit, 
                              QComboBox, QDoubleSpinBox, QMenu, QMenuBar, QStatusBar, QTabWidget, QSpinBox, QAction, QDialog, QCompleter)
@@ -96,11 +99,16 @@ class UI(QMainWindow):
         #Set up the graph
         self.canvas = MatplotlibCanvas(self)
         self.toolbar = Navi(self.canvas, self.centralwidget)
-        self.toolbar.setStyleSheet("background-color: rgb(255,255,255);")
+        self.toolbar.setStyleSheet("background-color: rgb(255,255,255);\n"
+                                   "color: rgb(70, 140, 0);\n"
+                                   "font: 12 12pt \"Segoe UI Semibold\";\n""")
         self.verticalLayout.addWidget(self.toolbar)
         self.verticalLayout.addWidget(self.canvas)
+        #fig.canvas.mpl_connect('button_press_event', self.press)
+        self.canvas.draw()
         
-        self.on_plot = []
+        self.lines_on_plot = []
+        self.points_on_plot = []
         
         self.show()
 
@@ -112,46 +120,81 @@ class UI(QMainWindow):
             self.saveLabel.setText(f"Save Location: {self.save_location}")
         
     def press(self, event):
-        if event.button == 3:
-            pass
-           # print(event.x, event.y)
+        if event.button == 2:#middle click event
+            ax = self.canvas.axes
+            x = round(event.xdata,1)
+            y = round(event.ydata,1)
+            self.points_on_plot.append([event.xdata, event.ydata])
+            ax.plot(event.xdata, event.ydata, marker="o", markersize=5,markerfacecolor="red",  markeredgecolor="red")
+            ax.text(event.xdata, event.ydata+.4, '({}, {})'.format(x, y))
+            
+            self.canvas.draw()
+            
     
-        
+    
     def plotFunction(self):
         #connect graph
+        def cos(x): 
+            return np.cos(x)
+        def sin(x): 
+            return np.sin(x)
+        def tan(x): 
+            return np.tan(x)
         ax = self.canvas.axes
-        
         #read values from spin boxes
         x_start = self.x_startSpinBox.value()
         x_end = self.x_endSpinBox.value()
         y_start = self.y_startSpinBox.value()
         y_end = self.y_endSpinBox.value()
-        x = np.linspace(x_start,x_end,100)
+        x = np.linspace(x_start-50,x_end+50,500)
         
-        #reads string in y = x line
         function = self.functionEdit.text()
         if "^" in function: #this converts ^ to exponent
             function = function.replace('^', '**')
+            
+        if function not in self.lines_on_plot:
+            self.lines_on_plot.append(function)
         
-        if 'x' in function:
-            y = eval(function) #turns string into funtion 
-        else:
-            y = [eval(function)]*100
-        
-        if function in self.on_plot: #prevents plotting same line
-            ax.cla()
-            for item in self.on_plot:
-                if 'x' in item:
+        fig.canvas.mpl_connect('button_press_event', self.press)   
+        ax.cla()
+        start_chars = ["x", "s", "c", "t"]
+        par_check = False
+        for item in self.lines_on_plot:
+            #below is alot of string comprehesion
+                            
+            if 'x' in item:
+                try:
                     y = eval(item) #turns string into funtion 
-                else:
-                    y = [eval(item)]*100
-                
+                except SyntaxError: #when a * is left out
+                    s = ''
+                    for i in range(len(item)-1):
+                        s += (item[i])
+                        if item[i] == '(':
+                            par_check = True
+                        elif item[i+1] in start_chars :
+                            s+='*'
+                    s+=item[-1]
+                    if par_check: #if they forget to close the par
+                        if ')' not in s:
+                            s+= ')'
+                    try:
+                        y = eval(s) 
+                    except:
+                        self.lines_on_plot.pop()
+                        raise
+                except NameError:
+                    self.lines_on_plot.pop()
+                    raise
                 ax.plot(x,y) 
-        else:
-            self.on_plot.append(function)
-            self.historyTextEdit.append(function) 
-            ax.plot(x,y)
-        
+            else:
+                y = [eval(item)]*500
+                ax.plot(x,y) 
+                
+        for dot in self.points_on_plot: #redraw the dots
+            x,y = dot
+            ax.plot(x, y, marker="o", markersize=5,markerfacecolor="red",  markeredgecolor="red")
+            ax.text(x, y+.4, '({}, {})'.format(round(x,1), round(y, 1)))
+            
         #format and draw the graph
         ax.set_xlabel("x")
         ax.set_ylabel("y")
@@ -163,27 +206,30 @@ class UI(QMainWindow):
         ax.axis(ymin=y_start,ymax=y_end)
         self.canvas.draw()
         
+    
+
+        self.canvas.draw()
       
     def clearPlot(self):
-        self.on_plot = []
+        self.lines_on_plot = []
+        self.points_on_plot = []
         sip.delete(self.toolbar)
         sip.delete(self.canvas)
-        ax = self.canvas.axes
+        #ax = self.canvas.axes
         self.canvas = MatplotlibCanvas(self)
         self.toolbar = Navi(self.canvas, self.centralwidget)
-        self.toolbar.setStyleSheet("background-color: rgb(255,255,255);")
+        self.toolbar.setStyleSheet("background-color: rgb(255,255,255);\n"
+                                   "color: rgb(70, 140, 0);\n"
+                                   "font: 12 12pt \"Segoe UI Semibold\";\n""")
         self.verticalLayout.addWidget(self.toolbar)
         self.verticalLayout.addWidget(self.canvas)
         self.historyTextEdit.append("cleared")
+        #fig.canvas.mpl_connect('button_press_event', self.press)
         
     def clearHistory(self):
         self.historyTextEdit.clear()
         
         
-
-      
-      
-
 
 
 if __name__ == "__main__":
