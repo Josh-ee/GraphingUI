@@ -154,6 +154,7 @@ class UI(QMainWindow):
             
         if function not in self.lines_on_plot:
             self.lines_on_plot.append(function)
+            self.historyTextEdit.append(function)
         
         fig.canvas.mpl_connect('button_press_event', self.press)   
         ax.cla()
